@@ -1,0 +1,30 @@
+name: Validate Submission
+
+# Same shape as logos-co/lambda-prize: pull_request_target so the job can comment
+# on PRs from forks, plus a second checkout that pulls the fork's head as data.
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout base branch (trusted)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Checkout PR head (untrusted data, never executed)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          path: pr
+          persist-credentials: false
+
+      - name: Run validation
+        run: |
+          echo "REACHED THE VALIDATION STEP"
+          ls -la pr/
